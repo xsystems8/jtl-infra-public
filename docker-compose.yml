@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  app:
+    image: vfxalert/jtl-worker:latest
+    restart: always
+    environment:
+      - PORT=8088
+      - STRATEGY_FILES_PATH=/www/app/strategy-files/
+      - DATABASE_URL=file:/www/app/storage.db
+      - MARKETS_FILE_PATH=/www/app/markets.json
+      - ARTIFACTS_DIR_PATH=/www/app/artifacts
+      - LOGS_DIR_PATH=/www/app/artifacts
+      - HISTORY_BARS_URL=http://frontend:8080/api/history-bars
+    network_mode: host
+    volumes:
+      - ./strategy-files:/www/app/strategy-files:cached
+      - ./storage.db:/www/app/storage.db:delegated
+      - ./markets.json:/www/app/markets.json
+      - ./artifacts:/www/app/artifacts
+    depends_on:
+      - fluent
+
+  frontend:
+    image: vfxalert/jtl-env-frontend:latest
+    restart: always
+    environment:
+      - PORT=8080
+    volumes:
+      - ./app-config.json:/www/app/app-config.json:cached
+      - ./history-bars:/www/app/history-bars
+      - ./artifacts:/www/app/artifacts
+    ports:
+      - "8080:8080"
