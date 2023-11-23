@@ -11,24 +11,21 @@ services:
       - MARKETS_FILE_PATH=/www/app/markets.json
       - ARTIFACTS_DIR_PATH=/www/app/artifacts
       - LOGS_DIR_PATH=/www/app/artifacts
-      - HISTORY_BARS_URL=http://frontend:8080/api/history-bars
-    network_mode: host
+      - HISTORY_BARS_PATH=/www/app/history-bars
+      - HISTORY_BARS_URL=https://data.binance.vision/data/futures/um/monthly/klines
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8088:${APP_PORT}"
+    links:
+      - redis
     volumes:
       - ./strategy-files:/www/app/strategy-files:cached
       - ./storage.db:/www/app/storage.db:delegated
+      - ./history-bars:/www/app/strategy-files:delegated
       - ./markets.json:/www/app/markets.json
       - ./artifacts:/www/app/artifacts
-    depends_on:
-      - fluent
 
-  frontend:
-    image: vfxalert/jtl-env-frontend:latest
+  redis:
+    image: redis:alpine
     restart: always
-    environment:
-      - PORT=8080
-    volumes:
-      - ./app-config.json:/www/app/app-config.json:cached
-      - ./history-bars:/www/app/history-bars
-      - ./artifacts:/www/app/artifacts
-    ports:
-      - "8080:8080"
+    
