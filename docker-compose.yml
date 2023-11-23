@@ -21,7 +21,7 @@ services:
     volumes:
       - ./strategy-files:/www/app/strategy-files:cached
       - ./storage.db:/www/app/storage.db:delegated
-      - ./history-bars:/www/app/strategy-files:delegated
+      - ./history-bars:/www/app/history-bars:delegated
       - ./markets.json:/www/app/markets.json
       - ./artifacts:/www/app/artifacts
 
