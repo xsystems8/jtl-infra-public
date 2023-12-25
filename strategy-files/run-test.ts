@@ -13,6 +13,7 @@ import { Test6 } from './tests/Test6.limit';
 import { Test8 } from './tests/Test8.Indicators';
 import { Test7 } from './tests/Test7-api';
 import { error, trace } from './common/log';
+import { TesterReportPro } from './common/report/layouts/tester.report.pro';
 
 class Strategy extends ExtendedScript {
   hedgeMode: boolean = true;
@@ -22,11 +23,11 @@ class Strategy extends ExtendedScript {
   private testNumber: number;
   private test: any;
   private watcher: TestWatcher;
-  private testerReport: TesterReportStandard;
+  private testerReport: any;
   private performance: PerformanceAnalyzer;
 
   constructor(params: GlobalARGS) {
-    info('---------------------RUN TESTS-----------------------');
+    console.log('---------------------RUN TESTS-----------------------');
     super(params);
 
     this.exchange = 'binance';
@@ -46,7 +47,7 @@ class Strategy extends ExtendedScript {
 
   onTick = async () => {
     if (this.iterator === 1) {
-      await getOrders();
+      await getOrders(this.symbol);
     }
     await this.test.onTick();
   };
@@ -57,7 +58,7 @@ class Strategy extends ExtendedScript {
   };
 
   onError = async (e) => {
-    info('==================== onError() ====================');
+    console.log('==================== onError() ====================');
 
     error('onError', 'error = ' + e.message, { e: e });
   };
@@ -78,7 +79,7 @@ class Strategy extends ExtendedScript {
 
     this.watcher = new TestWatcher();
     await this.watcher.init();
-    this.testerReport = new TesterReportStandard();
+    this.testerReport = new TesterReportPro();
   };
 
   checkPerformance = (obj, name) => {
@@ -90,7 +91,7 @@ class Strategy extends ExtendedScript {
   };
 
   onStop = async () => {
-    info('==================== onStop() ====================');
+    console.log('==================== onStop() ====================');
     await this.test.onStop();
 
     await this.prepareReport();

@@ -2,14 +2,44 @@ import { BaseObject } from '../base-object.js';
 import { error, log, trace, warning } from '../log';
 import { Listeners } from './types';
 
+/** Best practices for event emitter:
+ event in global scope ( see ExtendedScript.ts )
+ global.events = new EventsEmitter();
+ Base event names:
+  - onInit - when script is initialized
+  - onTick - on each tick
+  - onBar - on each bar
+  - onOrderChange - on each order changed (open, close, cancel, etc)
+  - onStop - when script is stopped (by user or by error)
+  - onArgsChange - when script args are changed (by user)
+*/
+
 /**
  * Emitter - event emitter provide functionality for subscribe to events and emit events.
  * @example
+ * // This example illustrates how to use EventsEmitter to calculate trade volume
+ * class TradeVolume extends BaseObject {
+ *   volume = 0;
+ *   volumeUsd = 0;
+ *   constructor() {
+ *     super();
+ *     global.events.subscribe('onOrderChange', this.calcVolume, this);
+ *   }
+ *
+ * // This function will be called on each time when order changed
+ *  calcVolume = async (order: Order) => {
+ *     if (order.status === 'closed' && order.reduceOnly !== true) {
+ *       this.volume += order.amount; // volume in base currency
+ *       this.volumeUsd += order.amount * order.price; // volume in USDT
+ *     }
+ *   };
+ * }
+ *
  *
  */
-export class EventsEmitter extends BaseObject {
-  nextId = 0;
-  listenersByObjId = {};
+export class EventEmitter extends BaseObject {
+  private nextId = 0;
+  private listenersByObjId: Listeners = {};
   private listeners: Listeners = {};
 
   constructor() {
@@ -30,16 +60,17 @@ export class EventsEmitter extends BaseObject {
     }
   }
 
+  //TODO: create functionality to check listener still valid (not destroyed)
   /**
    * Subscribe to event with listener. You can use on() instead of subscribe().
    * !important: function (listener) wouldn't be deleted even object witch has this function is destroyed (you should unsubscribe manually)
    * @param eventName - event name
-   * @param listener - async function (data) => {}
+   * @param listener - event handler
    * @param obj - object witch has this listener (for unsubscribing by object)
    * @returns {number} - listener id (for unsubscribing by id)
    *
    */
-  subscribe(eventName: string, listener: (data?: unknown) => void, obj = null): number {
+  subscribe(eventName: string, listener: (...args: any[]) => void, obj?: BaseObject): number {
     if (!this.listeners[eventName]) {
       this.listeners[eventName] = [];
     }
@@ -48,10 +79,10 @@ export class EventsEmitter extends BaseObject {
     let objName = obj ? obj.constructor.name : 'global';
 
     let listenerInfo = {
-      listener: listener,
-      listenerName: listenerName,
-      eventName: eventName,
-      objName: objName,
+      listener,
+      listenerName,
+      eventName,
+      objName,
       id: this.nextId++,
       objId: obj ? obj.id : null,
     };
@@ -108,13 +139,16 @@ export class EventsEmitter extends BaseObject {
    * @param obj - object witch has listeners
    * @returns {number} - count of unsubscribed listeners
    */
-  unsubscribeByObj(obj: { id: string }): number {
+  unsubscribeByObj(obj: BaseObject): number {
     let listenersCount = 0;
-    let ids = this.listenersByObjId[obj.id];
+
+    if (!obj.hasOwnProperty('id')) return;
+
+    const listeners = this.listenersByObjId[obj.id];
     // _consoleInfo('EventsEmitter:unsubscribeByObj', ids, obj.id);
 
-    if (ids) {
-      for (const listenerInfo of ids) {
+    if (listeners) {
+      for (const listenerInfo of listeners) {
         if (this.unsubscribeById(listenerInfo.id)) {
           listenersCount++;
         } else {
@@ -132,14 +166,10 @@ export class EventsEmitter extends BaseObject {
     log(
       'EventsEmitter:unsubscribeByObj',
       'Obj ' + obj.constructor.name + ' unsubscribed from ' + listenersCount + ' listeners id=' + obj.id,
-      { ids: ids, listenersByObjId: this.listenersByObjId },
+      // TODO: что такое ids?
+      { ids: listeners, listenersByObjId: this.listenersByObjId },
     );
 
     return listenersCount;
-  }
-
-  isAsync(func: Function) {
-    const AsyncFunction = async function () {}.constructor;
-    return func instanceof AsyncFunction;
   }
 }

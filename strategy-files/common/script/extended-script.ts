@@ -1,10 +1,10 @@
 import { global } from '../global';
-import { timeToString } from '../utils/date-time';
 import { error, log } from '../log';
-import { EventsEmitter } from '../events/events-emitter';
+import { EventEmitter } from '../events/event-emitter';
 import { Triggers } from '../events/triggers';
 import { Exchange } from '../exchange/exchange';
 import { Report } from '../report/report';
+import { BaseObject } from '../base-object';
 
 /**
  * This is a base class for all strategies with extended functionality.
@@ -12,20 +12,19 @@ import { Report } from '../report/report';
  * Strategy class should be extended from this class.
 
  */
-export class ExtendedScript implements BaseScriptInterface {
+export class ExtendedScript extends BaseObject implements BaseScriptInterface {
   exchange: string; //required
   symbol: string; //required
   interval: string; // if set  - onTimer will be called every interval instead of onTick
 
-  tickIsLocked: boolean;
   args: GlobalARGS;
   iterator = 0;
   hedgeMode: boolean;
   timeframe: number;
 
   constructor(args: GlobalARGS) {
+    super();
     this.args = args;
-    this.tickIsLocked = false;
 
     this.symbol = args.symbol;
 
@@ -40,14 +39,14 @@ export class ExtendedScript implements BaseScriptInterface {
     this.hedgeMode = args.hedgeMode === 'true';
 
     global.strategy = this;
-
-    global.events = new EventsEmitter();
-
+    global.events = new EventEmitter();
     global.triggers = new Triggers();
-
     global.report = new Report();
-
-    global.exchange = new Exchange({ hedgeMode: this.hedgeMode, symbol: this.symbol, exchange: args.exchange });
+    global.exchange = new Exchange({
+      hedgeMode: this.hedgeMode,
+      symbol: this.symbol,
+      exchange: args.exchange as string,
+    });
   }
 
   isInitialized = false;
@@ -71,10 +70,6 @@ export class ExtendedScript implements BaseScriptInterface {
   };
 
   runOnTick = async (data: Tick[]) => {
-    // TODO  if (this.tickIsLocked) return; move this to tester engine
-    if (this.tickIsLocked) return;
-
-    this.tickIsLocked = true;
     try {
       this.iterator++;
 
@@ -87,8 +82,6 @@ export class ExtendedScript implements BaseScriptInterface {
       this.iterator++;
     } catch (e) {
       await this.runOnError(e);
-    } finally {
-      this.tickIsLocked = false;
     }
   };
 
@@ -102,27 +95,18 @@ export class ExtendedScript implements BaseScriptInterface {
   };
 
   runOnTimer = async () => {
-    if (this.tickIsLocked) return;
-
-    this.tickIsLocked = true;
     try {
       this.iterator++;
       await this.onTimer();
       await global.events.emit('onTimer');
     } catch (e) {
       await this.runOnError(e);
-    } finally {
-      this.tickIsLocked = false;
     }
   };
 
   runOnOrderChange = async (orders: Order[]) => {
     try {
       for (const order of orders) {
-        if (isTester() && order.timestamp > 0) {
-          //TODO order.datetime should be set in tester
-          order.datetime = timeToString(order.timestamp);
-        }
         await this.onOrderChange(order);
         await global.events.emit('onOrderChange', order);
       }

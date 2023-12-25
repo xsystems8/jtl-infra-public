@@ -32,7 +32,7 @@
 //   errorCount: 0,
 // };
 
-import type { EventsEmitter } from './events/events-emitter';
+import type { EventEmitter } from './events/event-emitter';
 import type { Triggers } from './events/triggers';
 import type { Report } from './report/report';
 import type { Exchange } from './exchange/exchange';
@@ -44,7 +44,7 @@ class stdGlobalVariables {
   private _triggers: Triggers = null;
   private _report: Report = null;
   private _exchange: Exchange = null;
-  private _events: EventsEmitter = null;
+  private _events: EventEmitter = null;
   params = {};
   sp = null;
   basket = null;

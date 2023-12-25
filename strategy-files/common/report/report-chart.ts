@@ -23,16 +23,16 @@ export class ReportChart {
     this.nextTimeToAggregate = currentTime() + this.AGG_PERIOD;
   }
 
-  setLineInfo(name: string, aggType: AggType = 'max') {
+  setLineInfo(name: string, aggType: AggType = 'max', color?: string) {
     let lineNameWithAgg = aggType + '_' + name;
-    this.linesInfo[lineNameWithAgg] = { name: name, aggType: aggType };
+    this.linesInfo[lineNameWithAgg] = { name: name, aggType: aggType, color };
     this.lines[lineNameWithAgg] = [];
   }
   //aggType = sum / avg / max / min
 
-  addPoint(lineName: string, valueX: number, valueY: number) {
+  addPoint(lineName: string, valueX: number, valueY: number, color?: string) {
     if (!this.linesInfo[lineName]) {
-      this.linesInfo[lineName] = { name: lineName, aggType: 'none' };
+      this.linesInfo[lineName] = { name: lineName, aggType: 'none', color };
       this.lines[lineName] = [];
     }
 
@@ -48,11 +48,11 @@ export class ReportChart {
     }
   }
 
-  addPointByDate(lineName: string, valueY: number) {
-    this.addPoint(lineName, currentTime(), valueY);
+  addPointByDate(lineName: string, valueY: number, color?: string) {
+    this.addPoint(lineName, currentTime(), valueY, color);
   }
 
-  addPointAggByDate(lineName: string, value: number, aggType: AggType = 'max') {
+  addPointAggByDate(lineName: string, value: number, aggType: AggType = 'max', color?: string) {
     if (this.isNewDotsReady) {
       this.updatePointsToChart();
     }
@@ -60,7 +60,7 @@ export class ReportChart {
     if (!this.buffer[lineName]) {
       this.buffer[lineName] = { lastValue: 0, sum: 0, avg: 0, min: null, max: null, cnt: 0, lastX: 0 };
       const lineNameWithAgg = aggType + '_' + lineName;
-      this.linesInfo[lineNameWithAgg] = { name: lineName, aggType: aggType };
+      this.linesInfo[lineNameWithAgg] = { name: lineName, aggType: aggType, color };
       this.lines[lineNameWithAgg] = [];
     }
 
@@ -132,16 +132,16 @@ export class ReportChart {
   }
 
   prepareDataToReport = (): ChartDataReportBlock => {
-    let series = [];
+    const series = [];
 
-    for (let lineName in this.linesInfo) {
+    for (const lineName in this.linesInfo) {
       series.push({
         name: this.linesInfo[lineName].name,
         data: this.lines[lineName],
       });
     }
 
-    let dateStr = this.x.map((x) => {
+    const dateStr = this.x.map((x) => {
       return timeToString(x);
     });
 
@@ -155,24 +155,4 @@ export class ReportChart {
       },
     };
   };
-}
-
-export function addPointAggByDate(chartName: string, lineName: string, value: string, aggType: AggType = 'max') {
-  if (!global.reportCharts) {
-    global.reportCharts = {};
-  }
-  if (!global.reportCharts[chartName]) {
-    global.reportCharts[chartName] = new ReportChart(chartName);
-  }
-  global.reportCharts[chartName].addPointAggByDate(lineName, value, aggType);
-}
-
-export function addPointByDate(chartName: string, lineName: string, value: number) {
-  if (!global.reportCharts) {
-    global.reportCharts = {};
-  }
-  if (!global.reportCharts[chartName]) {
-    global.reportCharts[chartName] = new ReportChart(chartName);
-  }
-  global.reportCharts[chartName].addPointByDate(lineName, value);
 }

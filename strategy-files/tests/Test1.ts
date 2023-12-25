@@ -1,5 +1,6 @@
 import { SeparatePositions } from '../common/exchange/separate-positions';
 import { Test } from './Test';
+import { global } from '../common/global';
 
 export class Test1 extends Test {
   private sp: SeparatePositions;
@@ -8,7 +9,6 @@ export class Test1 extends Test {
 
   constructor() {
     super();
-    this.sp = new SeparatePositions();
   }
 
   async onTick() {
@@ -16,46 +16,44 @@ export class Test1 extends Test {
 
     let ordersCnt = 10;
     if (this.iterator === 1) {
-      let prevPrice = close();
-      prevPrice = 3500;
-
-      let executionPrice = 0;
-      let percent = 0.1;
-      for (let i = 1; i < ordersCnt; i++) {
-        // executionPrice = prevPrice * (1 - percent);
-        // await this.sp.sellLimit(1, executionPrice, 0, executionPrice * (1 - percent), { comment: 'test 0' });
-        // prevPrice = executionPrice;
-      }
-
-      prevPrice = close(); //Math.round(close()) - (close() % 100);
-      for (let i = 1; i < ordersCnt; i++) {
-        // executionPrice = prevPrice * (1 + percent);
-        // await this.sp.buyLimit(1, executionPrice, 0, executionPrice * (1 + percent), { comment: 'test 0' });
-        // prevPrice = executionPrice;
-      }
+      //    await global.exchange.buyMarket('', 2, close() * 0.95, close() * 1.05);
     }
 
-    let size = 0.1;
-    if (this.iterator % 1440 === 0 && this.iterator < 1440 * ordersCnt) {
-      await this.sp.buyMarket(size, 0, 0, { comment: 'test 0' });
-      //  await this.sp.sellMarket(size, 0, 0, { comment: 'test 0' });
-      info('buyMarket ---------');
-    }
-    if (this.iterator === 0) {
-      await this.sp.buyMarket(size, 0, 0, { comment: 'test 0' });
-    }
-    if (this.iterator === 1440 * ordersCnt + 1440) {
-      await this.sp.closeAllPositions();
-    }
-  }
+    if (this.iterator === 2) {
+      await global.exchange.sellLimit('', 2, close());
 
-  async onOrderChange(orders) {
-    await this.sp.onOrderChange(orders);
+      await global.exchange.createStopLossOrder('', 'market', 'sell', 1, close() * 1.05);
+      await global.exchange.createTakeProfitOrder('', 'market', 'sell', 1, close() * 0.95);
+    }
 
-    // let pos = await fetchPositions();
-    // if (pos.length > 2) {
-    //   info(pos);
-    //   ko();
+    // if (this.iterator === -1) {
+    //   let prevPrice = close();
+    //   prevPrice = 3500;
+    //
+    //   let executionPrice = 0;
+    //   let percent = 0.1;
+    //   for (let i = 1; i < ordersCnt; i++) {
+    //     executionPrice = prevPrice * (1 - percent);
+    //     await global.exchange.sellLimit('', 1, executionPrice, 0, executionPrice * (1 - percent));
+    //     prevPrice = executionPrice;
+    //   }
+    //
+    //   prevPrice = close(); //Math.round(close()) - (close() % 100);
+    //   for (let i = 1; i < ordersCnt; i++) {
+    //     executionPrice = prevPrice * (1 + percent);
+    //     await global.exchange.buyLimit('', 1, executionPrice, 0, executionPrice * (1 + percent));
+    //     prevPrice = executionPrice;
+    //   }
+    // }
+
+    // Do once in 1 day
+    // let size = 0.1;
+    // if (this.iterator % 1440 === 0 && this.iterator < 1440 * ordersCnt) {
+    //   await global.exchange.buyMarket('', size);
+    //
+    //   info('buyMarket ---------');
     // }
   }
+
+  async onOrderChange(order) {}
 }

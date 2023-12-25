@@ -12,7 +12,7 @@ export class Test extends BaseObject {
     this.iterator++;
   }
 
-  async onOrderChange(orders) {}
+  async onOrderChange(order) {}
 
   onInit() {}
   onRun() {}

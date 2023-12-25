@@ -85,9 +85,9 @@ export async function getCurrentDrawdownA(): Promise<number> {
   let drawdown = 0;
   for (let i = 0; i < positions.length; i++) {
     if (positions[i].side === 'long') {
-      drawdown += longProfit(positions[i].entryPrice, close(), positions[i].size);
+      drawdown += longProfit(positions[i].entryPrice, close(), positions[i].contracts);
     } else {
-      drawdown += shortProfit(positions[i].entryPrice, close(), positions[i].size);
+      drawdown += shortProfit(positions[i].entryPrice, close(), positions[i].contracts);
     }
   }
   return drawdown;

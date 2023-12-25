@@ -10,6 +10,7 @@ export class TesterReportPro extends BaseObject {
 
   startTime = 0;
   endTime = 0;
+
   constructor() {
     super();
     if (!isTester()) {
@@ -26,6 +27,7 @@ export class TesterReportPro extends BaseObject {
   }
 
   timeToNextUpdate = 0;
+
   onAfterTick = async () => {
     if (this.lastTimeUpdated + this.period < currentTime()) {
       await this.collectData();
@@ -54,7 +56,8 @@ export class TesterReportPro extends BaseObject {
       }
       uPnl += pos.unrealizedPnl;
     }
-    let profitApi = getProfit();
+
+    let profitApi = await getProfit();
 
     global.report.chartAddPointAgg('Profit/Lost', 'Zero', 0, 'last');
     global.report.chartAddPointAgg('Profit/Lost', 'Profit', profitApi, 'last');
@@ -78,7 +81,7 @@ export class TesterReportPro extends BaseObject {
 
   onStop = async () => {
     const fee = getFee();
-    const orders = (await getOrders()).slice(0, 100) as TableRow[];
+    const orders = (await getOrders()).slice(0, 100);
 
     global.report.optimizedSetValue('Commission', fee);
 
@@ -86,9 +89,11 @@ export class TesterReportPro extends BaseObject {
 
     global.report.cardSetValue('FinishDate', timeToStrHms(new Date().getTime()));
 
-    global.report.tableUpdate('Orders real', orders);
+    global.report.tableUpdate('Orders real', orders as TableRow[]);
 
     global.report.optimizedSetValue('Spend (min)', this.getTesterSpend());
+
+    global.report.tvChartAddOrders('TradingView', orders);
   };
 
   getTesterSpend() {

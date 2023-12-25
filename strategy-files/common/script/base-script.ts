@@ -4,14 +4,12 @@ export class BaseScript implements BaseScriptInterface {
   args: GlobalARGS;
   exchange: string;
   symbol: string;
-  tickIsLocked: boolean;
   interval: string;
   iterator = 0;
   timeframe = 1;
 
   constructor(args: GlobalARGS) {
     this.args = args;
-    this.tickIsLocked = false;
     this.timeframe = args.timeframe ? parseInt(args.timeframe) : 1;
     this.symbol = args.symbol ?? 'ETH/USDT';
   }
@@ -21,31 +19,21 @@ export class BaseScript implements BaseScriptInterface {
   onTick: (data: Tick[]) => Promise<void> | void;
 
   runOnTick = async (data: Tick[]) => {
-    if (this.tickIsLocked) return;
-
-    this.tickIsLocked = true;
     try {
       this.iterator++;
       await this.onTick(data);
     } catch (e) {
       await this.runOnError(e);
-    } finally {
-      this.tickIsLocked = false;
     }
   };
 
   runTickEnded = async (data: Tick[]) => {};
 
   runOnTimer = async () => {
-    if (this.tickIsLocked) return;
-
-    this.tickIsLocked = true;
     try {
       await this.onTimer();
     } catch (e) {
       await this.runOnError(e);
-    } finally {
-      this.tickIsLocked = false;
     }
   };
 

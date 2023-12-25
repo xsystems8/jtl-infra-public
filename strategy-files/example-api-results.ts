@@ -1,20 +1,21 @@
 import { ExtendedScript } from './common/script/extended-script';
 import { global } from './common/global';
 import { error, log, trace } from './common/log';
-import { currentTime } from './common/utils/date-time';
+import { currentTime, currentTimeString } from './common/utils/date-time';
 
 class Strategy extends ExtendedScript {
   version = '1.0.20';
-  sp;
   storageKey = '';
-  params = {};
   hedgeMode = true;
+  private sizeUsd: any;
+  private doNumber: number;
+  private order: Order;
 
-  constructor(params) {
+  constructor(params: GlobalARGS) {
     super(params);
 
     this.sizeUsd = params.sizeUsd ?? 10;
-    this.exchange = params.exchange ?? 'binanceusdm'; // binanceusdm-testnet, binanceusdm
+    this.exchange = params.exchange ? String(params.exchange) : 'binanceusdm'; // binanceusdm-testnet, binanceusdm
 
     this.symbol = params.symbol;
 
@@ -40,20 +41,20 @@ class Strategy extends ExtendedScript {
   onInit = async () => {
     //  await this.callApiOneByOne(1);
 
-    global.report.updateReport();
+    await global.report.updateReport();
   };
 
   onCallback = async (...args) => {
     trace('onCallback', 'onCallback', { args: args });
-    global.report.updateReport();
+    await global.report.updateReport();
   };
   tableApi = [];
   orders = [];
-  orderId = 0;
+  orderId = '';
 
   callApiOneByOne = async (n) => {
     let table = this.tableApi;
-    let result = {};
+    let result: any;
     let params = {};
     let triggerPrice, stopPrice;
 
@@ -71,8 +72,9 @@ class Strategy extends ExtendedScript {
     if (n === 3) {
       trace('callApiOneByOne', 'createOrder', { price: price, amount: amount });
 
-      result = await global.exchange.createOrder(0, 'limit', 'buy', amount, price, params);
+      result = await global.exchange.createOrder('', 'limit', 'buy', amount, price, params);
       this.orderId = result.id;
+
       await this.tableInsert({
         method: `createOrder - limit`,
         result: result,
@@ -98,105 +100,20 @@ class Strategy extends ExtendedScript {
       // });
 
       trace('callApiOneByOne', 'createOrder SL TP', { amount: amount, sl: sl, tp: tp });
-      result = await global.exchange.createStopLossOrder(0, 'market', 'buy', amount, sl, {});
+      result = await global.exchange.createStopLossOrder('', 'market', 'buy', amount, sl, {});
       await this.tableInsert({
         method: `createStopLossOrder`,
         result: result,
         params: { price: price, amount: amount, params: params },
       });
 
-      result = await global.exchange.createTakeProfitOrder(0, 'market', 'buy', amount, tp, {});
+      result = await global.exchange.createTakeProfitOrder('', 'market', 'buy', amount, tp, {});
       await this.tableInsert({
         method: `createTakeProfitOrder`,
         result: result,
         params: { price: price, amount: amount, params: params },
       });
     }
-
-    //create stop limit order
-
-    if (n === 5) {
-      params = { reduceOnly: true };
-      price = close() * 0.7;
-      amount = this.sizeUsd / price;
-
-      triggerPrice = close() * 0.9;
-      result = await global.exchange.createTriggerOrder(0, 'limit', 'buy', amount, price, triggerPrice, params);
-      await this.tableInsert({
-        method: `createTriggerOrder limit below`,
-        result: result,
-        params: { triggerPrice: triggerPrice, amount: amount, params: params },
-      });
-
-      triggerPrice = close() * 1.1;
-      result = await global.exchange.createTriggerOrder(0, 'limit', 'buy', amount, price, triggerPrice, params);
-      await this.tableInsert({
-        method: `createTriggerOrder limit above`,
-        result: result,
-        params: { triggerPrice: triggerPrice, amount: amount, params: params },
-      });
-
-      triggerPrice = close() * 0.9;
-      result = await global.exchange.createTriggerOrder(0, 'market', 'buy', amount, triggerPrice, triggerPrice, params);
-
-      await this.tableInsert({
-        method: `createTriggerOrder market below`,
-        result: result,
-        params: { triggerPrice: triggerPrice, amount: amount, params: params },
-      });
-
-      triggerPrice = close() * 1.1;
-      result = await global.exchange.createTriggerOrder(0, 'market', 'buy', amount, triggerPrice, triggerPrice, params);
-
-      await this.tableInsert({
-        method: `createTriggerOrder market above`,
-        result: result,
-        params: { triggerPrice: triggerPrice, amount: amount, params: params },
-      });
-    }
-
-    //createStopOrder
-    if (n === 6) {
-      params = { reduceOnly: true };
-      price = close() * 0.7;
-      amount = this.sizeUsd / price;
-
-      triggerPrice = close() * 0.9;
-      result = await global.exchange.createStopOrder(0, 'limit', 'buy', amount, price, triggerPrice, params);
-      await this.tableInsert({
-        method: `createStopOrder limit below`,
-        result: result,
-        params: { triggerPrice: triggerPrice, amount: amount, params: params },
-      });
-
-      triggerPrice = close() * 1.1;
-      result = await global.exchange.createStopOrder(0, 'limit', 'buy', amount, price, triggerPrice, params);
-      await this.tableInsert({
-        method: `createStopOrder limit above`,
-        result: result,
-        params: { triggerPrice: triggerPrice, amount: amount, params: params },
-      });
-
-      triggerPrice = close() * 0.9;
-      result = await global.exchange.createStopOrder(0, 'market', 'buy', amount, triggerPrice, triggerPrice, params);
-
-      await this.tableInsert({
-        method: `createStopOrder market below`,
-        result: result,
-        params: { triggerPrice: triggerPrice, amount: amount, params: params },
-      });
-
-      triggerPrice = close() * 1.1;
-      result = await global.exchange.createStopOrder(0, 'market', 'buy', amount, triggerPrice, triggerPrice, params);
-
-      await this.tableInsert({
-        method: `createStopOrder market above`,
-        result: result,
-        params: { triggerPrice: triggerPrice, amount: amount, params: params },
-      });
-    }
-
-    //getPositions
 
     if (n === 7) {
       result = await getPositions();
@@ -217,7 +134,14 @@ class Strategy extends ExtendedScript {
     }
     // modify order
     if (n === 60) {
-      result = await modifyOrder(this.orderId, this.symbol, 'limit', 'buy', amount, price * 1.01);
+      price = close() * 1.5;
+      amount = this.sizeUsd / price;
+      result = global.exchange.sellLimit(this.symbol, amount, price);
+
+      price = close() * 1.6;
+      amount = this.sizeUsd / price;
+
+      result = global.exchange.modifyOrder(this.orderId, this.symbol, 'limit', 'sell', amount, price, {});
       await this.tableInsert({
         method: 'modifyOrder',
         result: result,
@@ -241,17 +165,10 @@ class Strategy extends ExtendedScript {
     }
 
     if (n === 110) {
-      await this.tableInsert({ method: 'tms', result: tms() });
+      let candle = { d: currentTimeString(), h: high(), l: low(), o: open(), c: close(), t: tms() };
+      await this.tableInsert({ method: 'candle', result: candle });
 
-      await this.tableInsert({ method: 'close', result: close() });
-
-      await this.tableInsert({ method: 'open', result: open() });
-
-      await this.tableInsert({ method: 'high', result: high() });
-
-      await this.tableInsert({ method: 'low', result: low() });
-
-      await this.tableInsert({ method: 'volume', result: volume() });
+      //   await this.tableInsert({ method: 'volume', result: volume() });
     }
   };
 
@@ -268,10 +185,10 @@ class Strategy extends ExtendedScript {
       });
 
     this.tableApi.push(row);
-    await global.report.tableUpdate('Api results', row);
+    global.report.tableUpdate('Api results', row);
 
     console.log(this.iterator + ' | -------------------- ' + row.method + ' - done ', { result: row.result });
-    global.report.updateReport();
+    await global.report.updateReport();
 
     //let result = await setCache(JSON.stringify(this.tableApi), this.storageKey);
   };
@@ -281,7 +198,7 @@ class Strategy extends ExtendedScript {
       console.log('price of ' + this.symbol + ' = ' + close());
     }
     if (this.iterator % 5 === 0) {
-      global.report.updateReport();
+      await global.report.updateReport();
     }
     return;
     if (this.doNumber > 0) return;

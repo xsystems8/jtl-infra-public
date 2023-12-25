@@ -26,6 +26,7 @@ class Strategy extends ExtendedScript {
   //===========================================================================
 
   nextTimeToBuy = 0;
+
   onTick = async (data: Tick[]) => {
     if (tms() > this.nextTimeToBuy) {
       let params = {};
@@ -44,6 +45,7 @@ class Strategy extends ExtendedScript {
     this.reportLayout = new TesterReportPro();
     global.report.setDescription(`DCA bot buy every ${this.daysPeriod} days ${this.sizeUsd} USD`);
   };
+  
   onStop = async () => {
     info('-------------------------------- stop()-------------------------------');
     await global.report.updateReport();

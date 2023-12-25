@@ -8,7 +8,8 @@ class Strategy extends ExtendedScript {
   daysPeriod: number;
   sizeUsd: number;
   reportLayout: TesterReportPro;
-  constructor(params) {
+
+  constructor(params: GlobalARGS) {
     super(params);
 
     this.exchange = 'binanceusdm';
@@ -25,6 +26,7 @@ class Strategy extends ExtendedScript {
   //===========================================================================
 
   nextTimeToBuy = 0;
+
   onTick = async () => {
     if (tms() > this.nextTimeToBuy) {
       let params = {};
@@ -32,8 +34,8 @@ class Strategy extends ExtendedScript {
       if (this.hedgeMode) {
         params = { positionSide: 'long' };
       }
-      let order = await global.exchange.createOrder('', 'market', 'buy', size, null, params);
-      await global.exchange.createSlTpOrders(order.id, close() * 0.9, close() * 1.1);
+
+      let order = await global.exchange.buyMarket('', size, close() * 0.9, close() * 1.1, params);
 
       this.nextTimeToBuy = tms() + this.daysPeriod * 24 * 60 * 60 * 1000;
     }

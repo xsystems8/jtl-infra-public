@@ -36,7 +36,7 @@ export function error(event: string, msg?: string, args: Record<string, any> = {
   }
 }
 
-export function getLogs(type) {
+export function getLogs(type: string) {
   if (global.logs[type] === undefined) {
     global.logs[type] = [];
   }
@@ -61,13 +61,13 @@ export const logOnce = function (event, msg, args = {}) {
 };
 
 export const traceOnce = function (event, msg, args = {}) {
-  if (!_isMessageLogged(event, msg, args)) {
+  if (!_isMessageLogged(event, msg)) {
     trace(event, msg, args);
   }
 };
 
 export const errorOnce = function (event, msg, args = {}) {
-  if (!_isMessageLogged(event, '❌ ' + msg, args)) {
+  if (!_isMessageLogged(event, '❌ ' + msg)) {
     error(event, msg, args);
     return true;
   }
@@ -75,7 +75,7 @@ export const errorOnce = function (event, msg, args = {}) {
 };
 
 export const warningOnce = function (event, msg, args = {}) {
-  if (!_isMessageLogged(event, '⚠️ ' + msg, args)) {
+  if (!_isMessageLogged(event, '⚠️ ' + msg)) {
     error(event, '⚠️ ' + msg, args);
   }
 };

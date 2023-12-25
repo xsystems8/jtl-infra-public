@@ -1,15 +1,16 @@
 export interface Task {
   name: string;
+  callback: (params: Record<string, unknown>) => Promise<void> | void;
   params: Record<string, unknown>;
 }
 
-interface ListenerItem {
-  listener: (data: unknown) => Promise<void> | void;
+interface ListenerInfo {
+  listener: (...args: any[]) => Promise<void> | void;
   listenerName: string;
   eventName: string;
   objName: string;
   id: number;
-  objId: number | null;
+  objId: string | null;
 }
 
-export type Listeners = Record<string, ListenerItem[]>;
+export type Listeners = Record<string, ListenerInfo[]>;

@@ -5,21 +5,12 @@ import {
   convertTimeframeToNumber,
 } from './utils/timeframe';
 import { error, log, trace, warning } from './log';
-import { EventsEmitter } from './events/events-emitter';
+import { EventEmitter } from './events/event-emitter';
 import { global } from './global';
 import { timeToString } from './utils/date-time';
 import { BaseObject } from './base-object';
 
 const candlesBufferMap = {};
-
-interface Candle {
-  timestamp: number;
-  high: number;
-  low: number;
-  open: number;
-  close: number;
-  volume: number;
-}
 
 interface CandlesBufferOptions {
   symbol: string;
@@ -34,7 +25,7 @@ export class CandlesBuffer extends BaseObject {
   private readonly symbol: string;
   private readonly _preloadCandlesCount: number;
   private readonly _maxBufferLength: number;
-  private readonly emitter: EventsEmitter;
+  private readonly emitter: EventEmitter;
   private _isInited = false;
   private _buffer = [];
   private _lastTimeUpdated = null;
@@ -49,7 +40,7 @@ export class CandlesBuffer extends BaseObject {
     this.symbol = symbol;
     this._maxBufferLength = maxBufferLength;
     this._preloadCandlesCount = preloadCandlesCount;
-    this.emitter = new EventsEmitter();
+    this.emitter = new EventEmitter();
   }
 
   getCandles() {

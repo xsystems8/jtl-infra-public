@@ -1,33 +1,36 @@
-# [Запуск скриптов](#runtime)
+# Strategies
+___
 
 
-## [Создание сценария](#runtime-create-scenario)
-### Обязательные Параметры
+## Creating a Strategy
+###### Required params
 
-- `Name`: Название сценария тестирования.
-- `Prefix`: Префикс используется для генерации clientOrderId. Скрипты с типом запуска market будут получать только ордера созданная сданным префиксом.
-- `Strategy`: Файл торгового скрипта. Внутри файла описан класс Strategy.
-- `type` - market или system. 
-  - Если тип запуска market, то скрипт будет запущен только для одного symbol. 
-  - Если system, то скрипт будет без торговых функций, но сможет получать  уведомления о всех ордерах onOrderChange.
-### Стандартные дополнительные пераметры
-- `Symbol`: Торговый символ, на котором будет тестироваться стратегия. 
-- `Exchange`: Биржа, на которой будет тестироваться стратегия. 
-- `isHedge`: Определяет включён ли на бирже режим открытия позиции в обе стороны.
+- `Name`: Name of the test scenario.
+- `Prefix`: The prefix is used to generate the clientOrderId. Scripts with the market launch type will only receive orders created with this prefix.
+- `Strategy`: Trading script file. The Strategy class is described inside the file.
+- `type` - market or system. 
+  - If the launch type is market, then the script will be launched for only one symbol. 
+  - If system, then the script will have no trading functions, but will be able to receive notifications about all orders onOrderChange.
+
+###### Additional params
+
+- `Symbol`: The trading symbol on which the strategy will be launched. 
+- `Exchange`: The exchange on which the strategy will be launched.
+- `isHedge`: Determines whether the mode of opening a position in both directions is enabled on the exchange.
 
 ![image](./img/create-scanerio-runtime.jpg)
 
 
-## [Запуск сценария](#runtime-run-scenario)
+## Running the script
 
-### Кнопки управления
+### Control buttons
 
-- `Run`: Запускает сценарий.
-- `Stop`: Останавливает сценарий.
-- `Report`: Открывает окно отчета.
-- `Config`: Обновляет конфигурацию сценария. Без остановки скрипта можно изменить дополнительные параметры. Изменения будут отправлены в скрипт в событие onArgsChange
-- `Logs`: Открывает окно логов.
-- `Delete`: Удаляет сценарий.
+- `Run`: Runs the script.
+- `Stop`: Stops the script.
+- `Report`: Opens the report window.
+- `Config`: Updates the script configuration. You can change additional parameters without stopping the script. Changes will be sent to the script in the onArgsChange event.
+- `Logs`: Opens the log window.
+- `Delete`: Deletes a script.
 
 ![image](./img/runtime-tab.jpg)
 

@@ -1,15 +1,16 @@
 import { global } from './common/global';
 import { ExtendedScript } from './common/script/extended-script';
 import { TesterReportPro } from './common/report/layouts/tester.report.pro';
-import { TesterReportStandard } from './common/report/layouts/tester.report.standard';
 import { debugLog, error, trace } from './common/log';
 import { getCandlesBuffer, setCandlesBuffer } from './common/candles-buffer';
-import { timeToString } from './common/utils/date-time';
-import { calculateCandlesInMonth } from './common/utils/timeframe';
+
 import { getRSIValues, rsi } from './common/indicators/rsi';
 import { OrdersBasket } from './common/exchange/orders-basket';
 
 class Strategy extends ExtendedScript {
+  private rsiPeriod: number;
+  private sizeUsd: number;
+  private dataCollector: TesterReportPro;
   constructor(params) {
     super(params);
 

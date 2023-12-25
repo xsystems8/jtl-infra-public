@@ -161,7 +161,8 @@ export function checkOrderStructure(order) {
     order.status !== 'closed' &&
     order.status !== 'canceled' &&
     order.status !== 'expired' &&
-    order.status !== 'rejected'
+    order.status !== 'rejected' &&
+    order.status !== 'untriggered'
   ) {
     errors.push({
       event: 'checkOrderStructure',

@@ -14,6 +14,7 @@ class Strategy extends ExtendedScript {
   storageKey = '';
   params = {};
   // hedgeMode =  true;
+  private usdSize: number;
 
   constructor(args) {
     super(args);
@@ -22,11 +23,11 @@ class Strategy extends ExtendedScript {
     this.params = args;
     //  {"name":"Strategy move back real" }
     trace('constructor()', 'params', { args: args });
-    this.size_usd = 10;
+
     this.exchange = 'binanceusdm-testnet';
     this.symbol = 'BTC/USDT:USDT';
     this.iterator = 0;
-    info({ exchange: this.exchange, symbol: this.symbol, args: args, isTester: isTester() });
+    console.log({ exchange: this.exchange, symbol: this.symbol, args: args, isTester: isTester() });
 
     this.sp = new SeparatePositions({
       idPrefix: 'test',
@@ -38,7 +39,7 @@ class Strategy extends ExtendedScript {
     this.storageKey = 'sp.' + this.symbol + this.exchange + this.hedgeMode;
     this.usdSize = Number(params.usdSize ?? 10);
 
-    info({ version: this.version, usdSize: this.usdSize });
+    console.log({ version: this.version, usdSize: this.usdSize });
   }
 
   iteratorX = 1;
