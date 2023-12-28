@@ -1,5 +1,6 @@
 namespace ReportTradingView {
   export interface TVChartData {
+    exchange: string;
     interval: number;
     startTime: number;
     endTime: number;

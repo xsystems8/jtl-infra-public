@@ -75,8 +75,8 @@ export class TradingViewChart implements ReportTradingView.ReportWidget {
   }
 
   prepareToReport(): TVChartDataReportBlock {
-    const startDate = new Date(ARGS.startDate.getTime());
-    const endDate = new Date(ARGS.endDate.getTime());
+    const startDate = isTester() ? new Date(ARGS.startDate.getTime()) : new Date();
+    const endDate = isTester() ? startDate : new Date();
     endDate.setMonth(endDate.getMonth() + 1);
 
     const startTime = startDate.getTime();
@@ -86,13 +86,15 @@ export class TradingViewChart implements ReportTradingView.ReportWidget {
       type: 'trading_view_chart',
       name: this._widgetName,
       data: {
+        exchange: (ARGS.exchange as string) ?? '',
         interval: this._interval,
-        startTime,
-        endTime,
         shapes: this._shapes,
         table: this._table,
         indicator: this._indicator,
         oscillator: this._oscillator,
+        // for tester only
+        startTime,
+        endTime,
       },
     };
   }
