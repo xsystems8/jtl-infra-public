@@ -15,6 +15,7 @@ services:
       - HISTORY_BARS_URL=https://data.binance.vision/data/futures/um/monthly/klines
       - REDIS_URL=redis://redis:6379
       - ROLLUP_TS_CONFIG=/www/app/tsconfig.bundler.json
+      - SITE_API_HOST=https://jtnodes.top
     ports:
       - "${APP_PORT}:80"
     links:
