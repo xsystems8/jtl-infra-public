@@ -27,6 +27,8 @@ Registers a handler that will be called when the order is changed.
 > Handlers must be registered only in the constructor of the class where the trigger is used. 
 >> If you need to save tasks (state) after restarting the trading script using [Storage](../storage.md), then register handlers only through this method
 
+<br>
+
 ```typescript
 registerHandler(taskName: string, handler: Function, owner: BaseObject): void
 ```
@@ -80,6 +82,8 @@ ___
 Registers a callback that will be called when the order is changed.
 
 > If a handler is registered via the [registerHandler](#registerhandler) method and a callback was passed in the parameters when adding a task, then only the callback will be called when an event occurs.
+
+<br>
 
 ```typescript
 addTask(params: CreateOrderTaskParams): string

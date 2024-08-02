@@ -26,6 +26,8 @@ Registers a handler that will be called when the specified time is reached.
 > Handlers must be registered only in the constructor of the class where the trigger is used.
 >> If you need to save tasks (state) after restarting the trading script using [Storage](../storage.md), then register handlers only through this method
 
+<br>
+
 ```typescript
 registerHandler(taskName: string, handler: Function, owner: BaseObject): void
 ```
@@ -84,6 +86,43 @@ addTask(params: CreateTimeTaskParams): string
 
 
 * **Returns:** <_string_> - Task id.
+
+###### Example
+
+```typescript
+class SomeClass extends BaseObject {
+  private readonly timeTrigger: PriceTrigger;
+  
+  constructor() {
+    super();
+    
+    // ...some logic...
+    
+    this.timeTrigger = new TimeTrigger();
+    this.timeTrigger.registerHandler('onTimeReached', this.onTimeReached, this);
+  }
+  
+  async someMethod() {
+    // ...some logic...
+    
+    // Add a task that will call the handler (onTimeReached) when the specified time is reached
+    this.timeTrigger.addTask({
+      name: 'onTimeReached',
+      // the handler must be called no earlier than 10 seconds after the last tick.
+      triggerTime: tms() + 10000
+      
+      // only this callback will be called. The handler registered via the registerHandler method in the constructor will be ignored.
+      callback: async () => {
+        // ...do something...
+      }
+    })
+  }
+  
+  async onTimeReached() {
+    // ... do something ...   
+  }
+}
+```
 
 ___
 
