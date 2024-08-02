@@ -3,7 +3,7 @@ ___
 
 Report - provide functionality for create report of trading strategy. Report can be viewed in web interface.
 
-> Note: For tester report should be updated in OnStop() function when script is finished.
+> Note: For tester report should be updated in onStop() function when script is finished.
 >> For real trading report could be updated by time interval. But it is not recommended to update report too often. Default interval: 5 sec.
 
 * **Available Widgets**

@@ -288,7 +288,7 @@ export class Exchange extends BaseObject {
         triggerPrice: triggerPrice as number,
         symbol: this.symbol,
         ...(params.ownerShortId && { group: params.ownerShortId as string }),
-        callbackArgs: orderParams,
+        args: orderParams,
       });
 
       log('Exchange::createOrder', 'Trigger price task added', {
