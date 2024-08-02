@@ -1,7 +1,7 @@
 import { currentTimeString } from './utils/date-time';
 import { error, log, trace, warning } from './log';
 import { Report } from './report';
-import { EventEmitter, TriggerService } from './events';
+import { EventEmitter, TriggerService, TimeTrigger, OrderTrigger, PriceTrigger } from './events';
 import { ReportCard } from './report/report-card';
 import { ReportTable } from './report/report-table';
 import { TradingViewChart } from './report/report-tv';
@@ -13,7 +13,6 @@ import { getArgBoolean } from './base';
 export class Storage extends BaseObject {
   exceptProps = [];
   name = 'Storage';
-  items = [];
   _classes = {};
   version = '1.2.1';
   _baseClasses = {
@@ -27,6 +26,7 @@ export class Storage extends BaseObject {
   };
 
   isDebug = false;
+
   constructor(args) {
     super(args);
     try {
@@ -43,6 +43,9 @@ export class Storage extends BaseObject {
       error('Storage::constructor', e.message, { e });
     }
     this.addClass(TriggerService);
+    this.addClass(TimeTrigger);
+    this.addClass(OrderTrigger);
+    this.addClass(PriceTrigger);
     this.addClass(EventEmitter);
     this.addClass(Exchange);
     this.addClass(Report);
@@ -52,7 +55,7 @@ export class Storage extends BaseObject {
     this.addClass(ReportChart);
   }
 
-  async restoreState(key: string, obj) {
+  async restoreState(key: string, obj: object) {
     if (await this.dropState(key)) return;
 
     this.restoredPropsLevel1 = [];
@@ -72,7 +75,8 @@ export class Storage extends BaseObject {
       restoredPropsLevel1: this.restoredPropsLevel1,
     });
   }
-  async storeState(key, obj, exceptProps: string[] = [], onlyProps = []) {
+
+  async storeState(key: string, obj: object, exceptProps: string[] = [], onlyProps: string[] = []) {
     //  await this.dropState(key);
     this.getStatePropsLevel1 = [];
 
@@ -95,9 +99,10 @@ export class Storage extends BaseObject {
     return await this.saveState(key, { updated: currentTimeString(), ...state });
   }
 
-  debug(event, msg, params = {}) {
+  private debug(event, msg, params = {}) {
     if (this.isDebug) trace(event + '-debug', msg, params);
   }
+
   addClass(_class) {
     let name = _class.name;
 
@@ -110,7 +115,8 @@ export class Storage extends BaseObject {
 
   getStatePropsLevel1 = [];
   lastPropName = '';
-  getState(obj, i = 0, exceptProps = []) {
+
+  private getState(obj: object, i = 0, exceptProps = []) {
     if (!obj) return null;
 
     let state = {
@@ -144,10 +150,12 @@ export class Storage extends BaseObject {
       state._v = this.getState(Object.fromEntries(obj.entries()), i);
       return state;
     }
+
     if (obj instanceof Array) {
       state._v = obj;
       return state;
     }
+
     if (obj instanceof Date) {
       state._v = obj.toISOString();
 
@@ -189,7 +197,8 @@ export class Storage extends BaseObject {
 
     return state;
   }
-  dropState = async (key) => {
+
+  dropState = async (key: string) => {
     if (getArgBoolean('isDropState', false)) {
       log('Storage::dropState', 'State is dropped for key = ' + key, {}, true);
       await setCache(key, '[]');
@@ -197,12 +206,13 @@ export class Storage extends BaseObject {
     }
     return false;
   };
+
   iterator = 0;
   propName = '';
   restoredPropsLevel1 = [];
   ignoredPropsLevel1 = [];
   restoredPropsLevel2 = [];
-  private applyState(state, obj, i = 0) {
+  private applyState(state: object, obj: object, i = 0) {
     this.iterator++;
     i++;
     let className;
@@ -304,20 +314,4 @@ export class Storage extends BaseObject {
       return false;
     }
   }
-}
-
-export function isCircular(obj, cache = new WeakSet()) {
-  if (obj && typeof obj === 'object') {
-    if (cache.has(obj)) {
-      return true;
-    }
-    cache.add(obj);
-
-    for (let key of Object.keys(obj)) {
-      if (isCircular(obj[key], cache)) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
