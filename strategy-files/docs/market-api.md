@@ -39,6 +39,8 @@ symbolInfo(symbol: string): Promise<Symbol>
 
 * **Returns:** _Promise<[Symbol](#symbol)>_.
 
+___
+
 <br>
 
 ### [getHistory](#getHistory)
@@ -61,6 +63,8 @@ getHistory(timeframe: number, startTime: number, limit?: number): Promise<Candle
     const candles = await getHistory(1, 1703073753618, 100);
 ```
 
+___
+
 <br>
 
 ### [tms](#tms)
@@ -73,11 +77,13 @@ tms(): number
 
 * **Returns:** _number_.
 
+___
+
 <br>
 
 ### [open](#open)
 
-Returns the opening price of the current candle.
+Returns the opening price of the current candle. In real trading, returns the price that was 24 hours ago.
 
 ```typescript
 open(): number
@@ -85,11 +91,13 @@ open(): number
 
 * **Returns:** _number_.
 
+___
+
 <br>
 
 ### [high](#high)
 
-Returns the highest price of the current candle.
+Returns the highest price of the current candle. In real trading, returns the highest price in the last 24 hours.
 
 ```typescript
 high(): number
@@ -98,6 +106,8 @@ high(): number
 * **Returns:** _number_.
 
 ___
+
+<br>
 
 ### [low](#low)
 
@@ -108,6 +118,8 @@ low(): number
 ```
 
 * **Returns:** _number_.
+
+___
 
 <br>
 
@@ -121,6 +133,8 @@ close(): number
 
 * **Returns:** _number_.
 
+___
+
 <br>
 
 ### [getFee](#getFee)
@@ -132,6 +146,8 @@ getFee(): number
 ```
 
 * **Returns:** _number_.
+
+___
 
 <br>
 
@@ -145,6 +161,8 @@ ask(): number
 
 * **Returns:** _number_.
 
+___
+
 <br>
 
 ### [bid](#bid)
@@ -156,6 +174,8 @@ bid(): number
 ```
 
 * **Returns:** _number_.
+
+___
 
 <br>
 

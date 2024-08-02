@@ -15,8 +15,8 @@ namespace ReportTypes {
 
   type TVChartData = ReportTradingView.TVChartData;
 
-  type ReportBlockType = 'trading_view_chart' | 'table' | 'chart' | 'card' | 'optimizer_results';
-  type ReportBlockData = TableRow[] | CardData | ChartData | TVChartData | Record<string, unknown>;
+  type ReportBlockType = 'trading_view_chart' | 'table' | 'chart' | 'card' | 'optimizer_results' | 'action_button';
+  type ReportBlockData = TableRow[] | CardData | ChartData | TVChartData | Record<string, unknown> | ActionButtonData;
 
   type TableRow = Record<string, any>;
 
@@ -35,6 +35,13 @@ namespace ReportTypes {
     data: number[];
   }
 
+  interface ActionButtonData {
+    title: string;
+    paramName: string;
+    value: string | number;
+  }
+
+  export type ActionButtonReportBlock = GenericReportBlock<'action_button', ActionButtonData>;
   export type TableDataReportBlock = GenericReportBlock<'table', TableRow[]>;
   export type CardDataReportBlock = GenericReportBlock<'card', CardData>;
   export type ChartDataReportBlock = GenericReportBlock<'chart', ChartData>;

@@ -11,16 +11,26 @@ ___
   - [createOrder](#createOrder)
   - [createTriggeredOrder](#createTriggeredOrder)
   - [createReduceOrder](#createReduceOrder)
-  - [createSlTpByOwnerOrder](#createSlTpByOwnerOrder)
   - [createStopLossOrder](#createStopLossOrder)
   - [createTakeProfitOrder](#createTakeProfitOrder)
   - [cancelOrder](#cancelOrder)
   - [modifyOrder](#modifyOrder)
-  - [getOrderById](#getOrderById)
   - [buyMarket](#buyMarket)
   - [sellMarket](#sellMarket)
   - [buyLimit](#buyLimit)
   - [sellLimit](#sellLimit)
+  - [getContractsAmount](#getContractsAmount)
+  - [getUsdAmount](#getUsdAmount)
+  - [ask](#ask)
+  - [askVolume](#askVolume)
+  - [bid](#bid)
+  - [bidVolume](#bidVolume)
+  - [high](#high)
+  - [low](#low)
+  - [open](#open)
+  - [close](#close)
+  - [volume](#volume)
+  - [unsubscribe](#unsubscribe)
 
 <br>
 
@@ -31,11 +41,11 @@ const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMo
 ```
 
 * **Parameters**
-  - `symbol`: \<_string_> - Trading symbol name.
   - `exchange`: \<_string_> - Exchange on which trading will take place.
   - `hedgeMode?`: \<_boolean_> - Determines whether the mode of opening a position in both directions is enabled on the exchange.
   - `prefix?`: \<_string_> - The prefix is used to generate the clientOrderId. Scripts with the market launch type will only receive orders created with this prefix.
-
+  - `triggerType?`: \<_string_> - This parameter is responsible for the method of creating stop orders. If you set the type to `script`, then the Exchange class will be responsible for creating and controlling execution. If you set `exchange`, then when the main order is executed, stop orders will be created directly on the exchange. The default is `script`.
+  - `leverage?`: <_number_> - Exchange leverage
 ___
 
 <br>
@@ -45,11 +55,10 @@ ___
 Create order on exchange.
 
 ```typescript
-createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price: number, params?: Record<string, unknown>): Promise<Order>
+createOrder(type: OrderType, side: OrderSide, amount: number, price: number, params?: Record<string, unknown>): Promise<Order>
 ```
 
 * **Parameters**
-  - `symbol`: \<_string_> - Trading symbol name.
   - `type`: \<_[OrderType](trading-api.md#OrderType)_> - `market` or `limit`.
   - `side`: \<_[OrderSide](trading-api.md#OrderSide)_> - `buy` or `sell`.
   - `amount`: \<_number_> - Order amount.
@@ -63,7 +72,7 @@ createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, pr
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const order = await exchange.createOrder('ETH/USDT', 'market', 'buy', 0.5, 2200);
+const order = await exchange.createOrder('market', 'buy', 0.5, 2200);
 ```
 
 ___
@@ -72,19 +81,19 @@ ___
 
 ## [createTriggeredOrder](#createTriggeredOrder)
 
-This function uses our own library for working with trigger orders. 
+Creates a trigger order (market or limit) that is sent to the exchange when the price reaches the specified trigger price. 
 
-> Note: 
+> Note:
+This function uses our own library for working with trigger orders.
 It is important to note that these **orders are not placed directly into the exchange's order book**. 
 Instead, they are **stored locally** and are activated only when the market price reaches the specified trigger price. 
 Once activated, the corresponding order (market or limit) is sent to the exchange for execution.
 
 ```typescript
-createTriggerOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: Record<string, unknown>): Promise<Order>
+createTriggerOrder(type: OrderType, side: OrderSide, amount: number, triggerPrice: number, params: Record<string, unknown>): Promise<Order>
 ```
 
 * **Parameters**
-  - `symbol`: \<_string>_ - Trading symbol name.
   - `type`: \<_[OrderType](trading-api.md#OrderType)_> - `market` or `limit`.
   - `side`: \<_[OrderSide](trading-api.md#OrderSide)_> - `buy` or `sell`.
   - `amount`: \<_number_> - Order amount.
@@ -98,7 +107,7 @@ createTriggerOrder(symbol: string, type: OrderType, side: OrderSide, amount: num
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const triggeredOrder = await exchange.createTriggeredOrder('ETH/USDT', 'market', 'buy', 0.5, 2200, 2200);
+const triggeredOrder = await exchange.createTriggeredOrder('market', 'buy', 0.5, 2200, 2200);
 ```
 
 ___
@@ -110,13 +119,12 @@ ___
 Create reduce only order (close position).
 
 ```typescript
-createReduceOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price: number, params?: Record<string, unknown>): Promise<Order>
+createReduceOrder(type: OrderType, sideToClose: OrderSide, amount: number, price: number, params?: Record<string, unknown>): Promise<Order>
 ```
 
 * **Parameters**
-  - `symbol`: \<_string>_ - Trading symbol name.
   - `type`: \<_[OrderType](trading-api.md#OrderType)_> - `market` or `limit`.
-  - `side`: \<_[OrderSide](trading-api.md#OrderSide)_> - `buy` or `sell`.
+  - `sideToClose`: \<_[OrderSide](trading-api.md#OrderSide)_> - `buy` or `sell`.
   - `amount`: \<_number_> - Order amount.
   - `price`: \<_number_> - Order price.
   - `params?`: \<_Record<string, unknown>_> - Params for [createOrder](trading-api.md#createOrder) function.
@@ -127,41 +135,9 @@ createReduceOrder(symbol: string, type: OrderType, side: OrderSide, amount: numb
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const reduceOrder = await exchange.createReduceOrder('ETH/USDT', 'market', 'buy', 0.5, 2200);
+const reduceOrder = await exchange.createReduceOrder('market', 'buy', 0.5, 2200);
 ```
 
-___
-
-<br>
-
-## [createSlTpByOwnerOrder](#createSlTpByOwnerOrder)
-
-Create stop loss and take profit orders by owner order id.
-
-> Note: If owner order not executed yet, stop orders params saved and stop orders will be created 
-when owner order executed (status = `closed`).
-Also, if one of stop orders executed, another will be canceled (look at [onOrderChange](#onOrderChange)).
-
-```typescript
-createSlTpByOwnerOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price: number, params?: Record<string, unknown>): Promise<Order>
-```
-
-* **Parameters**
-  - `symbol`: \<_string_> - Trading symbol name.
-  - `type`: \<_[OrderType](trading-api.md#OrderType)_> - `market` or `limit`.
-  - `side`: \<_[OrderSide](trading-api.md#OrderSide)_> - `buy` or `sell`.
-  - `amount`: \<_number_> - Order amount.
-  - `price`: \<_number_> - Order price.
-  - `params?`: \<_Record<string, unknown>_> - Params for [createOrder](trading-api.md#createOrder) function.
-
-
-* **Returns:** _Promise<Array<[Order](trading-api.md#order)>>_.
-
-###### Example
-```typescript
-const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const order = await exchange.createSlTpByOwnerOrder('ETH/USDT', 'market', 'buy', 0.5, 2200);
-```
 ___
 
 <br>
@@ -172,15 +148,13 @@ Create stop loss order (close position).
 > Note: Stop loss order could be only `market` type
 
 ```typescript
-createStopLossOrder(symbol: string, type: OrderType, sideToClose: OrderSide, amount: number, triggerPrice: number, params?: Record<string, unknown>): Promise<Order>
+createStopLossOrder(sideToClose: OrderSide, amount: number, stopLossPrice: number, params?: Record<string, unknown>): Promise<Order>
 ```
 
 * **Parameters**
-  - `symbol`: \<_string_> - Trading symbol name.
-  - `type`: \<_[OrderType](trading-api.md#OrderType)_> - `market` or `limit`.
   - `sideToClose`: \<_[OrderSide](trading-api.md#OrderSide)_> - `buy` or `sell` - side of order to close. If you want to close buy order, you need pass 'buy' to this param so stop loss order will be sell order.
   - `amount`: \<_number_> - Order amount.
-  - `triggerPrice`: \<_number_> - Trigger price (stop loss price).
+  - `stopLossPrice`: \<_number_> - Trigger price (stop loss price).
   - `params?`: \<_Record<string, unknown>_> - Params for [createOrder](trading-api.md#createOrder) function.
 
 
@@ -189,7 +163,7 @@ createStopLossOrder(symbol: string, type: OrderType, sideToClose: OrderSide, amo
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const slOrder = await exchange.createStopLossOrder('ETH/USDT', 'market', 'sell', 0.5, 2200);
+const slOrder = await exchange.createStopLossOrder('market', 'sell', 0.5, 2200);
 ```
 
 ___
@@ -202,15 +176,13 @@ Create take profit order (close position).
 > Note: Take profit order could be only `market` type
 
 ```typescript
-createTakeProfitOrder(symbol: string, type: OrderType, sideToClose: OrderSide, amount: number, triggerPrice: number, params?: Record<string, unknown>): Promise<Order>
+createTakeProfitOrder(sideToClose: OrderSide, amount: number, takeProfitPrice: number, params?: Record<string, unknown>): Promise<Order>
 ``` 
 
 * **Parameters**
-  - `symbol`: \<_string_> - Trading symbol name.
-  - `type`: \<_[OrderType](trading-api.md#OrderType)_> - `market` or `limit`.
   - `sideToClose`: \<_[OrderSide](trading-api.md#OrderSide)_> - `buy` or `sell` - side of order to close. If you want to close buy order, you need pass 'buy' to this param so stop loss order will be sell order.
   - `amount`: \<_number_> - Order amount.
-  - `triggerPrice`: \<_number_> - Trigger price (stop loss price).
+  - `takeProfitPrice`: \<_number_> - Trigger price (take profit price).
   - `params?`: \<_Record<string, unknown>_> - Params for [createOrder](trading-api.md#createOrder) function.
 
 
@@ -219,7 +191,7 @@ createTakeProfitOrder(symbol: string, type: OrderType, sideToClose: OrderSide, a
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const slOrder = await exchange.createTakeProfitOrder('ETH/USDT', 'market', 'sell', 0.5, 2200);
+const slOrder = await exchange.createTakeProfitOrder('market', 'sell', 0.5, 2200);
 ```
 
 ___
@@ -231,12 +203,11 @@ ___
 Cancel order by id
 
 ```typescript
-cancelOrder(orderId: string, symbol: string): Promise<Order>
+cancelOrder(orderId: string): Promise<Order>
 ```
 
 * **Parameters**
   - `orderId`: \<_string_> - Order id.
-  - `symbol`: \<_string_> - Symbol name.
 
 
 * **Returns:** _Promise<[Order](trading-api.md#order)>_.
@@ -244,10 +215,10 @@ cancelOrder(orderId: string, symbol: string): Promise<Order>
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const order = await exchange.createOrder('ETH/USDT', 'market', 'buy', 0.5, 2200);
+const order = await exchange.createOrder('limit', 'buy', 0.5, 2200);
 // ...
 
-await exchange.cancelOrder(order.id, 'market');
+await exchange.cancelOrder(order.id);
 ```
 
 ___
@@ -259,12 +230,11 @@ ___
 Modify order by id (change price, amount).
 
 ```typescript
-modifyOrder(orderId: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number): Promise<Order>
+modifyOrder(orderId: string, type: OrderType, side: OrderSide, amount: number, price: number): Promise<Order>
 ```
 
 * **Parameters**
   - `orderId`: \<_string_> - Order id.
-  - `symbol`: \<_string_> - Trading symbol name.
   - `type`: \<_[OrderType](trading-api.md#OrderType)_> - `market` or `limit`.
   - `side`: \<_[OrderSide](trading-api.md#OrderSide)_> - `buy` or `sell`.
   - `amount`: \<_number_> - Order amount.
@@ -277,32 +247,9 @@ modifyOrder(orderId: string, symbol: string, type: OrderType, side: OrderSide, a
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
 const order = await exchange.createOrder('ETH/USDT', 'market', 'buy', 0.5, 2200);
+// ..
 
-const modifiedOrder = await exchange.modifyOrder(order.id, 'ETH/USDT', 'buy', 1, 2200);
-```
-
-___
-
-<br>
-
-## [getOrderById](#getOrderById)
-
-Get order by id or client order id.
-
-```typescript
-getOrderById(orderId: stirng): Promise<Order>
-```
-
-* **Parameters**
-  - `orderId`: \<_string_> - Order id.
-
-
-* **Returns:** _Promise<[Order](trading-api.md#order)>_.
-
-###### Example
-```typescript
-const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const order = await exchange.getOrderById('orderId');
+const modifiedOrder = await exchange.modifyOrder(order.id, 'buy', 1, 2200);
 ```
 
 ___
@@ -314,14 +261,13 @@ ___
 Create market buy order.
 
 ```typescript
-buyMarket(symbol: string, amount: number, sl: number, tp: number, params?: Record<string, unknown>): Promise<Order>
+buyMarket(amount: number, sl?: number, tp?: number, params?: Record<string, unknown>): Promise<Order>
 ```
 
 * **Parameters**
-  - `symbol`: \<_string_> - Trading symbol name.
   - `amount`: \<_number_> - Order amount.
-  - `sl`: \<_number_> - Stop loss price. If `sl = 0`, stop loss order will not be created.
-  - `tp`: \<_number_> - Take profit price. If `tp = 0`, take profit order will not be created.
+  - `sl?`: \<_number_> - Stop loss price. If `sl = 0`, stop loss order will not be created.
+  - `tp?`: \<_number_> - Take profit price. If `tp = 0`, take profit order will not be created.
   - `params?`: \<_Record<string, unknown>_> - Params for [createOrder](trading-api.md#createOrder) function.
 
 
@@ -330,7 +276,7 @@ buyMarket(symbol: string, amount: number, sl: number, tp: number, params?: Recor
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const order = await exchange.buyMarket('ETH/USDT', 1, 2150, 2200);
+const order = await exchange.buyMarket(1, 2150, 2200);
 ```
 
 ___
@@ -342,14 +288,13 @@ ___
 Create market sell order.
 
 ```typescript
-sellMarket(symbol: string, amount: number, sl: number, tp: number, params?: Record<string, unknown>): Promise<Order>
+sellMarket(amount: number, sl: number, tp: number, params?: Record<string, unknown>): Promise<Order>
 ```
 
 * **Parameters**
-  - `symbol`: \<_string_> - Trading symbol name.
   - `amount`: \<_number_> - Order amount.
-  - `sl`: \<_number_> - Stop loss price. If `sl = 0`, stop loss order will not be created.
-  - `tp`: \<_number>_ - Take profit price. If `tp = 0`, take profit order will not be created.
+  - `sl?`: \<_number_> - Stop loss price. If `sl = 0`, stop loss order will not be created.
+  - `tp?`: \<_number>_ - Take profit price. If `tp = 0`, take profit order will not be created.
   - `params?`: \<_Record<string, unknown>_> - Params for [createOrder](trading-api.md#createOrder) function.
 
 
@@ -358,7 +303,7 @@ sellMarket(symbol: string, amount: number, sl: number, tp: number, params?: Reco
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const order = await exchange.sellMarket('ETH/USDT', 1, 2200, 2150);
+const order = await exchange.sellMarket(1, 2200, 2150);
 ```
 
 ___
@@ -370,15 +315,14 @@ ___
 Create limit buy order.
 
 ```typescript
-butLimit(symbol: string, amount: number, price: number, sl: number, tp: number, params?: Record<string, unknown>): Promise<Order>
+butLimit(amount: number, limitPrice: number, sl?: number, tp?: number, params?: Record<string, unknown>): Promise<Order>
 ```
 
 * **Parameters**
-  - `symbol`: \<_string_> - Trading symbol name.
   - `amount`: \<_number_> - Order amount.
-  - `price`: \<_number_> - Order execution price.
-  - `sl`: \<_number_> - Stop loss price. If `sl = 0`, stop loss order will not be created.
-  - `tp`: \<_number_> - Take profit price. If `tp = 0`, take profit order will not be created.
+  - `limitPrice`: \<_number_> - Order execution price.
+  - `sl?`: \<_number_> - Stop loss price. If `sl = 0`, stop loss order will not be created.
+  - `tp?`: \<_number_> - Take profit price. If `tp = 0`, take profit order will not be created.
   - `params?`: \<_Record<string, unknown>_> - Params for [createOrder](trading-api.md#createOrder) function.
 
 
@@ -387,7 +331,7 @@ butLimit(symbol: string, amount: number, price: number, sl: number, tp: number, 
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const order = await exchange.buyLimit('ETH/USDT', 1, 2200, 2150, 2300);
+const order = await exchange.buyLimit(1, 2200, 2150, 2300);
 ```
 
 ___
@@ -399,15 +343,14 @@ ___
 Create limit sell order.
 
 ```typescript
-sellLimit(symbol: string, amount: number, price: number, sl: number, tp: number, params?: Record<string, unknown>): Promise<Order>
+sellLimit(amount: number, limitPrice: number, sl?: number, tp?: number, params?: Record<string, unknown>): Promise<Order>
 ```
 
 * **Parameters**
-  - `symbol`: \<_string_> - Trading symbol name.
   - `amount`: \<_number_> - Order amount.
-  - `price`: \<_number_> - Order execution price.
-  - `sl`: \<_number_> - Stop loss price. If `sl = 0`, stop loss order will not be created.
-  - `tp`: \<_number_> - Take profit price. If `tp = 0`, take profit order will not be created.
+  - `limitPrice`: \<_number_> - Order execution price.
+  - `sl?`: \<_number_> - Stop loss price. If `sl = 0`, stop loss order will not be created.
+  - `tp?`: \<_number_> - Take profit price. If `tp = 0`, take profit order will not be created.
   - `params?`: \<_Record<string, unknown>_> - Params for [createOrder](trading-api.md#createOrder) function.
 
 
@@ -416,13 +359,211 @@ sellLimit(symbol: string, amount: number, price: number, sl: number, tp: number,
 ###### Example
 ```typescript
 const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
-const order = await exchange.sellLimit('ETH/USDT', 1, 2200, 2300, 2150);
+const order = await exchange.sellLimit(1, 2200, 2300, 2150);
 ```
 
 ___
 
 <br>
 
+## [getContractsAmount](#getContractsAmount)
+
+Converts a currency into the number of available contracts for purchase.
+
+```typescript
+getContractsAmount(usdAmount: number, executionPrice?: number): number
+```
+
+* **Parameters**
+  - `usdAmount`: \<_number_> - USD amount.
+  - `executionPrice?`: \<_number_> - Order execution price. If not specified, the current price will be used.
+
+
+* **Returns:** _number_.
+
+###### Example
+```typescript
+const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
+const amount = exchange.getContractsAmount(10, 2200);
+
+await exchange.buyMarket(amount);
+```
+
+___
+
+<br>
+
+## [getUsdAmount](#getUsdAmount)
+
+Converts number of contracts to currency.
+
+```typescript
+getUsdAmount(contractsAmount: number, executionPrice?: number): number
+```
+
+* **Parameters**
+  - `contractsAmount`: \<_number_> - USD amount.
+  - `executionPrice?`: \<_number_> - Order execution price. If not specified, the current price will be used.
+
+
+* **Returns:** _number_.
+
+###### Example
+```typescript
+const exchange = new Exchange({ symbol: 'ETH/USDT', exchange: 'binance', hedgeMode: true });
+const usdSize = exchange.getUsdAmount(10);
+```
+
+___
+
+<br>
+
+## [ask](#ask)
+
+Offer (purchase) price.
+
+```typescript
+ask(): number
+```
+
+
+* **Returns:** _number_.
+
+___
+
+<br>
+
+## [askVolume](#askVolume)
+
+Ask volume.
+
+```typescript
+askVolume(): number
+```
+
+
+* **Returns:** _number_.
+
+___
+
+<br>
+
+## [bid](#bid)
+
+Bid (sale) price.
+
+```typescript
+bid(): number
+```
+
+
+* **Returns:** _number_.
+
+___
+
+<br>
+
+## [bidVolume](#bidVolume)
+
+Bid volume.
+
+```typescript
+bidVolume(): number
+```
+
+
+* **Returns:** _number_.
+
+___
+
+<br>
+
+## [high](#high)
+
+Highest price of the current candle. In real trading, returns the highest price in the last 24 hours.
+
+```typescript
+high(): number
+```
+
+
+* **Returns:** _number_.
+
+___
+
+<br>
+
+## [low](#low)
+
+Lowest price of the current candle. In real trading, returns the lowest price in the last 24 hours.
+
+```typescript
+low(): number
+```
+
+
+* **Returns:** _number_.
+
+___
+
+<br>
+
+## [open](#open)
+
+Opening price of the current candle. In real trading, returns the price that was 24 hours ago.
+
+```typescript
+open(): number
+```
+
+
+* **Returns:** _number_.
+
+___
+
+<br>
+
+## [close](#close)
+
+Returns the current price.
+
+```typescript
+close(): number
+```
+
+
+* **Returns:** _number_.
+
+___
+
+<br>
+
+## [volume](#volume)
+
+Number of transactions concluded on the asset. In real trading, returns the trading volume for the last 24 hours.
+
+```typescript
+volume(): number
+```
+
+
+* **Returns:** _number_.
+
+___
+
+<br>
+
+## [unsubscribe](#unsubscribe)
+
+When this method is called, the Exchange instance unsubscribes from global events and cancels all price triggers.
+
+```typescript
+unsubscribe(): void
+```
+
+___
+
+<br>
 
 
 

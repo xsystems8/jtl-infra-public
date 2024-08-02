@@ -5,13 +5,20 @@ declare global {
   /// <reference path="symbol.interface.ts" />
   /// <reference path="tick.interface.ts" />
   /// <reference path="candle.interface.ts" />
-
-
   type GlobalARGS = {
-    startDate: Date;
-    endDate: Date;
+    exchange: string;
+    start: string; //"2021-01"
+    end: string; //"2021-12"
+    startDate: Date; //"2021-01-01T00:00:00.000Z"
+    endDate: Date; // "2021-12-31T23:59:59.999Z"
     symbol: string;
     timeframe: string;
+    optimizerIteration: number;
+    makerFee: number;
+    takerFee: number;
+    marketOrderSpread: number;
+    balance: number;
+    leverage: number;
   } & Record<string, string | number | boolean>;
 
   const ARGS: GlobalARGS;
@@ -58,7 +65,8 @@ declare global {
     args: GlobalARGS;
     timeframe: number;
     exchange: string;
-    symbol: string;
+    //  symbol: string;
+    symbols: string[];
     interval: string;
     iterator: number;
 
@@ -76,6 +84,9 @@ declare global {
     onError: (e: any) => Promise<void | never> | never | void;
     run: () => Promise<void> | void;
     stop: () => Promise<void> | void | never;
+
+    getInternalState?: (key: string) => unknown;
+    trigger?: (event: string) => void;
   }
 
   //-------environment functions-----------------
@@ -133,6 +144,13 @@ declare global {
    */
   function getPrefix(): string;
 
+  /**
+   * setLeverage - set leverage for futures trading
+   * @param leverage - leverage value (1-125)
+   * @param symbol - symbol name spot (BTC/USDT) or futures (BTC/USDT:USDT)
+   */
+  function setLeverage(leverage: number, symbol: string): Promise<any>;
+
   //--------Market Data functions-----------------
 
   //TODO create function getAvailableSymbols() and getAvailableTimeframes()
@@ -147,31 +165,38 @@ declare global {
    * tsm - return timestamp of the current candle
    * @returns {number}
    */
-  function tms(): number;
+  function tms(symbol? = undefined): number;
 
   /**
    *open  - return open price of the current candle
    * @returns {number}
    */
-  function open(): number;
+  function open(symbol?: string): number;
 
   /**
    * high  - return high price of the current candle
    * @returns {number}
    */
-  function high(): number;
+  function high(symbol?: string): number;
 
   /**
    * volume - return volume of the current candle
    * @returns {number}
    */
-  function low(): number;
+  function low(symbol?: string): number;
 
   /**
    * close - return the current price of the current candle
    * @returns {number}
    */
-  function close(): number;
+  function close(symbol?: string): number;
+
+  /**
+   * volume - return volume of the current candle
+   * @returns {number}
+   * @param symbol - symbol name spot (BTC/USDT) or futures (BTC/USDT:USDT)
+   */
+  function volume(symbol?: string): number;
 
   /**
    * getFee  - return fee for all executed orders for current script (only for tester)
@@ -184,21 +209,21 @@ declare global {
 
   /**
    * ask - return ask price (first price from order book) for current symbol
-   * @returns {number}
+   * @returns {[number, number]}
    * @example:
    * let askPrice = ask();
    * console.log("Ask price " + askPrice);
    */
-  function ask(): number;
+  function ask(symbol?: string, index: number = 0): [number, number];
 
   /**
    * bid - return bid price (first price from order book) for current symbol
-   * @returns {number}
+   * @returns {[number, number]}
    * @example:
    * let bidPrice = bid();
    * console.log("Bid price " + bidPrice);
    */
-  function bid(): number;
+  function bid(symbol?: string, index: number = 0): [number, number];
 
   //---------------------- Trading functions ----------------------------
 
@@ -212,7 +237,7 @@ declare global {
    * }
    *
    */
-  function getPositions(): Promise<Position[]>;
+  function getPositions(symbols?: string[]): Promise<Position[]>;
 
   /**
    * getBalance  - return balance for current script
@@ -239,14 +264,14 @@ declare global {
    *  // do something
    * }
    */
-  function getOrders(symbol: string, since?: number, limit?: number): Promise<Order[]>;
+  function getOrders(symbol: string, since = 0, limit = 500, params: any = undefined): Promise<Order[]>;
 
   /**
    * getOrder - return order by id for symbol
    * @param id - order id
    * @param symbol - symbol name (required for some exchanges)
    */
-  function getOrder(id: string, symbol: string): Promise<Order>;
+  function getOrder(id: string, symbol = ''): Promise<Order>;
 
   /**
    * getProfit  - return profit for all closed positions for current script (only for tester)
@@ -323,8 +348,14 @@ declare global {
     side: OrderSide,
     amount: number,
     price: number,
-    params: Record<string, unknown>,
+    params = {},
   ): Promise<Order>;
+
+  async function sdkCall(method: string, args: any[]): Promise<any>;
+  async function sdkGetProp(property: string): Promise<any>;
+  async function sdkSetProp(property: string, value: any): Promise<void>;
+
+  function forceStop(): void;
 }
 
 export {};

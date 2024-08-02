@@ -1,5 +1,6 @@
 namespace PositionTypes {
   export interface Position {
+    emulated?: boolean;
     id?: string;
     symbol?: string;
     contracts?: number; // amount base currency (contracts)

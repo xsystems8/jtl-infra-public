@@ -6,7 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es2017",
+    "target": "es2019",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
@@ -14,7 +14,9 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "rootDir": ".",
-    "typeRoots": ["./interfaces/global.d.ts"]
+    "rootDir": "./strategy-files",
+//    "typeRoots": ["./interfaces/global.d.ts"],
+    "types": ["jest"]
   },
+  "exclude": ["node_modules"]
 }

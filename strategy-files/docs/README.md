@@ -20,7 +20,7 @@ ___
   - [ExtendedScript](extended-script.md)
   - [EventEmitter](event-emitter.md)
   - [Exchange](exchange.md)
-  - [Triggers](triggers.md)
+  - [TriggerService](trigger-service.md)
   - [Report](report.md)
  
   
