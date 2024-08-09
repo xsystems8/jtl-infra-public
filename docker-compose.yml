@@ -1,8 +1,6 @@
-version: "3.9"
-
 services:
   app:
-    image: vfxalert/jtl-worker:main
+    image: jtlab/jtl-worker:main
     restart: always
     environment:
       - PORT=80
@@ -15,7 +13,7 @@ services:
       - HISTORY_BARS_URL=https://data.binance.vision/data/futures/um/monthly/klines
       - REDIS_URL=redis://redis:6379
       - ROLLUP_TS_CONFIG=/www/app/tsconfig.bundler.json
-      - SITE_API_HOST=https://jtnodes.top
+      - SITE_API_HOST=https://jt-lab.com
       - ENGINE_MODE=realtime
     ports:
       - "${APP_PORT}:80"
@@ -31,4 +29,3 @@ services:
   redis:
     image: redis:alpine
     restart: always
-    
